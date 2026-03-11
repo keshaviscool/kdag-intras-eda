@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>EDA Dashboard</title>
+<style>
+  /* ── Reset & Base ───────────────────────────────────────── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "SF Mono", "Menlo", "Consolas", "Liberation Mono", monospace;
+    background: #fff; color: #111; font-size: 14px; line-height: 1.55;
+    display: flex; height: 100vh; overflow: hidden;
+  }
+
+  /* ── Sidebar ────────────────────────────────────────────── */
+  #sidebar {
+    width: 340px; min-width: 260px; border-right: 1px solid #ccc;
+    display: flex; flex-direction: column; height: 100vh;
+    background: #fafafa;
+  }
+  #sidebar-header {
+    padding: 20px 18px 12px; border-bottom: 1px solid #ddd;
+  }
+  #sidebar-header h1 { font-size: 16px; letter-spacing: 1px; font-weight: 700; }
+  #sidebar-header p { font-size: 11px; color: #666; margin-top: 4px; }
+  #overview-bar {
+    padding: 10px 18px; font-size: 11px; border-bottom: 1px solid #ddd;
+    color: #444; display: flex; flex-wrap: wrap; gap: 6px 14px;
+  }
+  .ov-item span { font-weight: 700; color: #000; }
+  #search-box {
+    padding: 10px 18px; border-bottom: 1px solid #ddd;
+  }
+  #search-box input {
+    width: 100%; padding: 7px 10px; font-size: 12px;
+    border: 1px solid #bbb; font-family: inherit; outline: none;
+  }
+  #search-box input:focus { border-color: #000; }
+  #feature-list {
+    flex: 1; overflow-y: auto; padding: 6px 0;
+  }
+  .feat-item {
+    padding: 8px 18px; cursor: pointer; display: flex;
+    justify-content: space-between; align-items: center;
+    border-bottom: 1px solid #eee; transition: background 0.1s;
+  }
+  .feat-item:hover { background: #f0f0f0; }
+  .feat-item.active { background: #000; color: #fff; }
+  .feat-item .fname { font-size: 12px; font-weight: 600; max-width: 200px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .feat-item .ftype {
+    font-size: 10px; padding: 2px 6px; border: 1px solid #aaa;
+    border-radius: 3px; white-space: nowrap;
+  }
+  .feat-item.active .ftype { border-color: #888; color: #ccc; }
+
+  /* ── Main Content ───────────────────────────────────────── */
+  #main {
+    flex: 1; overflow-y: auto; padding: 30px 40px; background: #fff;
+  }
+  #placeholder {
+    display: flex; align-items: center; justify-content: center;
+    height: 100%; color: #aaa; font-size: 15px; letter-spacing: 0.5px;
+  }
+  #detail { display: none; }
+  #detail.show { display: block; }
+
+  /* Header */
+  .detail-header { margin-bottom: 24px; border-bottom: 2px solid #000; padding-bottom: 14px; }
+  .detail-header h2 { font-size: 20px; font-weight: 800; letter-spacing: 0.5px; }
+  .detail-header .desc { font-size: 12px; color: #555; margin-top: 4px; }
+  .detail-header .badges { margin-top: 8px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .badge {
+    font-size: 11px; padding: 3px 10px; border: 1px solid #000;
+    font-weight: 600; letter-spacing: 0.5px;
+  }
+  .badge-dark { background: #000; color: #fff; }
+
+  /* Section */
+  .section { margin-bottom: 28px; }
+  .section h3 {
+    font-size: 13px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 1px; border-bottom: 1px solid #ddd;
+    padding-bottom: 6px; margin-bottom: 12px;
+  }
+
+  /* Stats Grid */
+  .stats-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 10px;
+  }
+  .stat-card {
+    border: 1px solid #ddd; padding: 10px 14px;
+  }
+  .stat-card .label { font-size: 10px; color: #777; text-transform: uppercase; letter-spacing: 0.5px; }
+  .stat-card .value { font-size: 16px; font-weight: 700; margin-top: 2px; word-break: break-all; }
+
+  /* Charts */
+  .chart-container { margin-bottom: 18px; }
+  .chart-container img { width: 100%; max-width: 680px; border: 1px solid #ddd; }
+
+  /* Value Counts Table */
+  .vc-table { width: 100%; max-width: 600px; border-collapse: collapse; font-size: 12px; }
+  .vc-table th, .vc-table td { padding: 5px 12px; border-bottom: 1px solid #eee; text-align: left; }
+  .vc-table th { font-weight: 700; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #000; }
+  .vc-table tr:hover { background: #f8f8f8; }
+  .vc-bar { height: 6px; background: #000; display: inline-block; vertical-align: middle; }
+
+  /* Samples */
+  .sample-list { display: flex; flex-wrap: wrap; gap: 6px; }
+  .sample-chip {
+    font-size: 11px; padding: 3px 10px; border: 1px solid #ccc;
+    max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+
+  /* Loading */
+  #loading { display: none; text-align: center; padding: 80px 0; color: #888; font-size: 13px; }
+  #loading.show { display: block; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+</style>
+</head>
+<body>
+
+<!-- ── Sidebar ─────────────────────────────────────────── -->
+<div id="sidebar">
+  <div id="sidebar-header">
+    <h1>EDA Dashboard</h1>
+    <p>Exploratory Data Analysis · train.csv</p>
+  </div>
+  <div id="overview-bar"></div>
+  <div id="search-box">
+    <input type="text" id="search" placeholder="Search features…" autocomplete="off" />
+  </div>
+  <div id="feature-list"></div>
+</div>
+
+<!-- ── Main ────────────────────────────────────────────── -->
+<div id="main">
+  <div id="placeholder">← Select a feature to explore</div>
+  <div id="loading" class="">Loading…</div>
+  <div id="detail"></div>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+let features = [];
+let activeCol = null;
+
+/* ── Fetch overview ─────────────────────────────────── */
+fetch("/api/overview").then(r => r.json()).then(ov => {
+  const bar = $("#overview-bar");
+  const items = [
+    ["Rows", ov.total_rows.toLocaleString()],
+    ["Columns", ov.total_columns],
+    ["Numeric", ov.numeric_columns],
+    ["Categorical", ov.categorical_columns],
+    ["Missing", ov.missing_percentage + "%"],
+    ["Duplicates", ov.duplicate_rows],
+    ["Memory", ov.memory_usage_mb + " MB"],
+  ];
+  bar.innerHTML = items.map(([l,v]) =>
+    `<span class="ov-item">${l}: <span>${v}</span></span>`
+  ).join("");
+});
+
+/* ── Fetch feature list ─────────────────────────────── */
+fetch("/api/features").then(r => r.json()).then(data => {
+  features = data;
+  renderList(data);
+});
+
+function renderList(list) {
+  const el = $("#feature-list");
+  el.innerHTML = list.map(f =>
+    `<div class="feat-item${f.name === activeCol ? ' active' : ''}"
+          data-col="${f.name}" onclick="selectFeature('${f.name.replace(/'/g, "\\'")}')">
+      <span class="fname" title="${f.name}">${f.name}</span>
+      <span class="ftype">${f.type.split("(")[0].trim()}</span>
+    </div>`
+  ).join("");
+}
+
+$("#search").addEventListener("input", e => {
+  const q = e.target.value.toLowerCase();
+  renderList(features.filter(f =>
+    f.name.toLowerCase().includes(q) || f.type.toLowerCase().includes(q)
+  ));
+});
+
+/* ── Select Feature ─────────────────────────────────── */
+function selectFeature(col) {
+  activeCol = col;
+  renderList(features.filter(f => {
+    const q = $("#search").value.toLowerCase();
+    return f.name.toLowerCase().includes(q) || f.type.toLowerCase().includes(q);
+  }));
+  $("#detail").classList.remove("show");
+  $("#placeholder").style.display = "none";
+  $("#loading").classList.add("show");
+
+  fetch(`/api/feature/${encodeURIComponent(col)}`)
+    .then(r => r.json())
+    .then(d => {
+      $("#loading").classList.remove("show");
+      renderDetail(d);
+      $("#detail").classList.add("show");
+      // scroll to top
+      $("#main").scrollTop = 0;
+    });
+}
+
+/* ── Render Detail ──────────────────────────────────── */
+function fmt(v) {
+  if (v === null || v === undefined) return "—";
+  if (typeof v === "number") {
+    if (Number.isInteger(v)) return v.toLocaleString();
+    return v.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 });
+  }
+  return String(v);
+}
+
+function renderDetail(d) {
+  const isNum = d.feature_type.includes("Numerical") || d.feature_type === "Boolean";
+
+  let html = `
+  <div class="detail-header">
+    <h2>${d.name}</h2>
+    <div class="desc">${d.description}</div>
+    <div class="badges">
+      <span class="badge badge-dark">${d.feature_type}</span>
+      <span class="badge">dtype: ${d.dtype}</span>
+      <span class="badge">${d.unique_values.toLocaleString()} unique (${d.unique_percentage}%)</span>
+      ${d.null_count > 0 ? `<span class="badge">${d.null_count.toLocaleString()} null (${d.null_percentage}%)</span>` : '<span class="badge">No nulls ✓</span>'}
+    </div>
+  </div>`;
+
+  /* ── Basic Info ──── */
+  html += `<div class="section"><h3>Overview</h3><div class="stats-grid">`;
+  const basics = [
+    ["Total Rows", d.total_rows],
+    ["Non-Null", d.non_null_count],
+    ["Null Count", d.null_count],
+    ["Null %", d.null_percentage + "%"],
+    ["Unique Values", d.unique_values],
+    ["Unique %", d.unique_percentage + "%"],
+    ["Mode", d.mode],
+    ["Entropy", d.entropy],
+  ];
+  basics.forEach(([l,v]) => {
+    html += `<div class="stat-card"><div class="label">${l}</div><div class="value">${fmt(v)}</div></div>`;
+  });
+  html += `</div></div>`;
+
+  /* ── Numeric Stats ──── */
+  if (isNum) {
+    html += `<div class="section"><h3>Descriptive Statistics</h3><div class="stats-grid">`;
+    const numStats = [
+      ["Min", d.min], ["Max", d.max], ["Range", d.range],
+      ["Mean", d.mean], ["Median", d.median], ["Std Dev", d.std_dev],
+      ["Variance", d.variance], ["Skewness", d.skewness], ["Kurtosis", d.kurtosis],
+      ["CV %", d.coeff_of_variation], ["Sum", d.sum],
+    ];
+    numStats.forEach(([l,v]) => {
+      html += `<div class="stat-card"><div class="label">${l}</div><div class="value">${fmt(v)}</div></div>`;
+    });
+    html += `</div></div>`;
+
+    /* Percentiles */
+    html += `<div class="section"><h3>Percentiles</h3><div class="stats-grid">`;
+    [1,5,10,25,50,75,90,95,99].forEach(p => {
+      html += `<div class="stat-card"><div class="label">P${p}</div><div class="value">${fmt(d["p"+p])}</div></div>`;
+    });
+    html += `</div></div>`;
+
+    /* Outliers */
+    html += `<div class="section"><h3>Outlier Analysis (IQR Method)</h3><div class="stats-grid">`;
+    const outlierStats = [
+      ["IQR", d.iqr], ["Lower Bound", d.outlier_lower_bound],
+      ["Upper Bound", d.outlier_upper_bound], ["Outlier Count", d.outlier_count],
+      ["Outlier %", d.outlier_percentage + "%"],
+      ["Zero Count", d.zero_count], ["Zero %", d.zero_percentage + "%"],
+      ["Negative Count", d.negative_count], ["Positive Count", d.positive_count],
+    ];
+    outlierStats.forEach(([l,v]) => {
+      html += `<div class="stat-card"><div class="label">${l}</div><div class="value">${fmt(v)}</div></div>`;
+    });
+    html += `</div></div>`;
+  }
+
+  /* ── Charts ──── */
+  html += `<div class="section"><h3>Distribution</h3>`;
+  if (d.chart_frequency) {
+    html += `<div class="chart-container"><img src="data:image/png;base64,${d.chart_frequency}" alt="frequency" /></div>`;
+  }
+  if (d.chart_boxplot) {
+    html += `<div class="chart-container"><img src="data:image/png;base64,${d.chart_boxplot}" alt="boxplot" /></div>`;
+  }
+  html += `</div>`;
+
+  /* Magnitude chart */
+  if (d.chart_magnitude) {
+    html += `<div class="section"><h3>Order of Magnitude Distribution</h3>`;
+    html += `<div class="chart-container"><img src="data:image/png;base64,${d.chart_magnitude}" alt="magnitude" /></div>`;
+    if (d.magnitude_distribution) {
+      html += `<div class="stats-grid">`;
+      Object.entries(d.magnitude_distribution).forEach(([k,v]) => {
+        html += `<div class="stat-card"><div class="label">${k}</div><div class="value">${v.toLocaleString()}</div></div>`;
+      });
+      html += `</div>`;
+    }
+    html += `</div>`;
+  }
+
+  /* ── Value Counts ──── */
+  html += `<div class="section"><h3>Value Counts (Top ${d.value_counts_total_shown} of ${d.value_counts_total.toLocaleString()})</h3>`;
+  const vc = d.value_counts;
+  const vcEntries = Object.entries(vc);
+  const maxVC = vcEntries.length ? Math.max(...vcEntries.map(e => e[1])) : 1;
+  html += `<table class="vc-table"><thead><tr><th>Value</th><th>Count</th><th style="width:40%">Bar</th></tr></thead><tbody>`;
+  vcEntries.forEach(([val, count]) => {
+    const pct = (count / maxVC * 100).toFixed(1);
+    html += `<tr><td>${val}</td><td>${count.toLocaleString()}</td>
+      <td><span class="vc-bar" style="width:${pct}%"></span> ${(count/d.total_rows*100).toFixed(2)}%</td></tr>`;
+  });
+  html += `</tbody></table></div>`;
+
+  /* ── Samples ──── */
+  html += `<div class="section"><h3>Sample Values</h3><div class="sample-list">`;
+  (d.sample_values || []).forEach(v => {
+    html += `<span class="sample-chip">${v}</span>`;
+  });
+  html += `</div></div>`;
+
+  $("#detail").innerHTML = html;
+}
+</script>
+</body>
+</html>

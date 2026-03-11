@@ -1,0 +1,107 @@
+Columns Name,Definition
+Address type,Type of address like permanent or current 
+Avg_Disbursement_Amount_Bureau,Avg disbursement loan amount available in bureau records 
+CITY,City of loan disbursement 
+DISTRICT,District
+FarmerID,Loan Agreement no 
+Households_with_improved_Sanitation_Facility,Percentage of household with improved Sanity 
+K021-Ambient temperature (min & max),Kharif season 21 minimum and maximum temperature
+K021-Seasonal Average Rainfall (mm),Kharif season 21 average rainfall 
+K022-Ambient temperature (min & max),Kharif season 22 minimum and maximum temperature
+K022-Nearest Mandi Name,Nearest Mandi name - Kharif 22
+K022-Proximity to nearest mandi (Km),Nearest Mandi in km - Kharif 22
+K022-Proximity to nearest railway (Km),mandi from nearest railwaystation - Kharif 22
+K022-Seasonal Average Rainfall (mm),Kharif season 22 average rainfall 
+"K022-Village category based on Agri parameters (Good, Average, Poor)",Village category based upon the agriculture parameter 
+"K022-Village category based on socio-economic parameters (Good, Average, Poor)",Village category based upon the Social Economic parameter 
+Kharif Seasons  Agricultural performance in 2022,Kharif Seasons  Agricultural performance in 2022
+Kharif Seasons  Agricultural Score in 2022,Kharif Seasons  Agricultural Score in 2022
+Kharif Seasons  Agro Ecological Sub Zone in 2022,Kharif Seasons  Agro Ecological Sub Zone in 2022
+Kharif Seasons  Cropping density in 2022,Kharif Seasons  Cropping density in 2022
+Kharif Seasons  Irrigated area in 2022,Kharif Seasons  Irrigated area in 2022
+Kharif Seasons  Seasonal average groundwater replenishment rate (cm) in 2022,Kharif Seasons  Seasonal average groundwater replenishment rate (cm) in 2022
+Kharif Seasons  Seasonal average groundwater thickness (cm) in 2022,Kharif Seasons  Seasonal average groundwater thickness (cm) in 2022
+Kharif Seasons  Type of soil in 2022,Kharif Seasons  Type of soil in 2022
+Kharif Seasons  Type of water bodies in hectares 2022,Kharif Seasons  Type of water bodies in hectares 2022
+Kharif Seasons Agricultural performance in 2020,Kharif Seasons Agricultural performance in 2020
+Kharif Seasons Agricultural performance in 2021,Kharif Seasons Agricultural performance in 2021
+Kharif Seasons Agricultural Score in 2020,Kharif Seasons Agricultural Score in 2020
+Kharif Seasons Agricultural Score in 2021,Kharif Seasons Agricultural Score in 2021
+Kharif Seasons Agro Ecological Sub Zone in 2020,Kharif Seasons Agro Ecological Sub Zone in 2020
+Kharif Seasons Agro Ecological Sub Zone in 2021,Kharif Seasons Agro Ecological Sub Zone in 2021
+Kharif Seasons Cropping density in 2020,Kharif Seasons Cropping density in 2020
+Kharif Seasons Cropping density in 2021,Kharif Seasons Cropping density in 2021
+Kharif Seasons Kharif Season Irrigated area in 2020,Kharif Seasons Kharif Season Irrigated area in 2020
+Kharif Seasons Kharif Season Irrigated area in 2021,Kharif Seasons Kharif Season Irrigated area in 2021
+Kharif Seasons Seasonal average groundwater replenishment rate (cm) in 2020,Kharif Seasons Seasonal average groundwater replenishment rate (cm) in 2020
+Kharif Seasons Seasonal average groundwater replenishment rate (cm) in 2021,Kharif Seasons Seasonal average groundwater replenishment rate (cm) in 2021
+Kharif Seasons Seasonal average groundwater thickness (cm) in 2020,Kharif Seasons Seasonal average groundwater thickness (cm) in 2020
+Kharif Seasons Seasonal average groundwater thickness (cm) in 2021,Kharif Seasons Seasonal average groundwater thickness (cm) in 2021
+Kharif Seasons Type of soil in 2020,Kharif Seasons Type of soil in 2020
+Kharif Seasons Type of soil in 2021,Kharif Seasons Type of soil in 2021
+Kharif Seasons Type of water bodies in hectares 2020,Kharif Seasons Type of water bodies in hectares 2020
+Kharif Seasons Type of water bodies in hectares 2021,Kharif Seasons Type of water bodies in hectares 2021
+KO22-Village score based on socio-economic parameters (0 to 100),Village category based upon the Social Economic parameter score 
+Land Holding Index source (Total Agri Area/ no of people), Land Holding Index source (Total Agri Area/ no of people)
+Location,Last checking location at the time of FI 
+MARITAL_STATUS,Marital status of customer 
+mat_roof_Metal_GI_Asbestos_sheets,Percentage of household with mat roof with GI Sheet 
+Net agricultural area ,Net agricultural area 
+Net agricultural area of geographical area ,Net agricultural area of geographical area 
+Night light index, Night light index
+No_of_Active_Loan_In_Bureau,Number of active loan in credit bureau 
+Non_Agriculture_Income,Non agriculture income 
+Ownership,"Customer ownership type like parental house,owned etc"
+perc_Households_do_not_have_KCC_With_The_Credit_Limit_Of_50k,percentage of House don’t have kisan credit card 
+perc_Households_with_Pucca_House_That_Has_More_Than_3_Rooms,percentage of house have 3 pucca house 
+Perc_of_house_with_6plus_room,percentage of house have 6+  house 
+perc_of_pop_living_in_hh_electricity,percentage of population having electricity in house 
+perc_of_Wall_material_with_Burnt_brick,percentage of house wall is built up with bricks 
+R020-Ambient temperature (min & max),Rabi season 20 minimum and maximum temperature
+R020-Seasonal Average Rainfall (mm),Rabi season 22 average rainfall 
+R021-Ambient temperature (min & max),Rabi season 21 minimum and maximum temperature
+R021-Seasonal Average Rainfall (mm),Rabi season 21 average rainfall 
+R022-Ambient temperature (min & max),Rabi season 22 minimum and maximum temperature
+R022-Seasonal Average Rainfall (mm),Rabi season 21 average rainfall 
+"R022-Village category based on Agri parameters (Good, Average, Poor)",Village category based upon the Social Economic parameter 
+Rabi Seasons  Season Irrigated area in 2022,Rabi Seasons  Season Irrigated area in 2022
+Rabi Seasons Agricultural performance in 2020,Rabi Seasons Agricultural performance in 2020
+Rabi Seasons Agricultural performance in 2021,Rabi Seasons Agricultural performance in 2021
+Rabi Seasons Agricultural performance in 2022,Rabi Seasons Agricultural performance in 2022
+Rabi Seasons Agricultural Score in 2020,Rabi Seasons Agricultural Score in 2020
+Rabi Seasons Agricultural Score in 2021,Rabi Seasons Agricultural Score in 2021
+Rabi Seasons Agricultural Score in 2022,Rabi Seasons Agricultural Score in 2022
+Rabi Seasons Agro Ecological Sub Zone in 2020,Rabi Seasons Agro Ecological Sub Zone in 2020
+Rabi Seasons Agro Ecological Sub Zone in 2021,Rabi Seasons Agro Ecological Sub Zone in 2021
+Rabi Seasons Agro Ecological Sub Zone in 2022,Rabi Seasons Agro Ecological Sub Zone in 2022
+Rabi Seasons Cropping density in 2020,Rabi Seasons Cropping density in 2020
+Rabi Seasons Cropping density in 2021,Rabi Seasons Cropping density in 2021
+Rabi Seasons Cropping density in 2022,Rabi Seasons Cropping density in 2022
+Rabi Seasons Kharif Season Irrigated area in 2020,Rabi Seasons Kharif Season Irrigated area in 2020
+Rabi Seasons Kharif Season Irrigated area in 2021,Rabi Seasons Kharif Season Irrigated area in 2021
+Rabi Seasons Seasonal average groundwater replenishment rate (cm) in 2020,Rabi Seasons Seasonal average groundwater replenishment rate (cm) in 2020
+Rabi Seasons Seasonal average groundwater replenishment rate (cm) in 2021,Rabi Seasons Seasonal average groundwater replenishment rate (cm) in 2021
+Rabi Seasons Seasonal average groundwater replenishment rate (cm) in 2022,Rabi Seasons Seasonal average groundwater replenishment rate (cm) in 2022
+Rabi Seasons Seasonal average groundwater thickness (cm) in 2020,Rabi Seasons Seasonal average groundwater thickness (cm) in 2020
+Rabi Seasons Seasonal average groundwater thickness (cm) in 2021,Rabi Seasons Seasonal average groundwater thickness (cm) in 2021
+Rabi Seasons Seasonal average groundwater thickness (cm) in 2022,Rabi Seasons Seasonal average groundwater thickness (cm) in 2022
+Rabi Seasons Type of soil in 2020,Rabi Seasons Type of soil in 2020
+Rabi Seasons Type of soil in 2021,Rabi Seasons Type of soil in 2021
+Rabi Seasons Type of soil in 2022,Rabi Seasons Type of soil in 2022
+Rabi Seasons Type of water bodies in hectares 2020,Rabi Seasons Type of water bodies in hectares 2020
+Rabi Seasons Type of water bodies in hectares 2021,Rabi Seasons Type of water bodies in hectares 2021
+Rabi Seasons Type of water bodies in hectares 2022,Rabi Seasons Type of water bodies in hectares 2022
+REGION,Region 
+Road density (Km/ SqKm), Road density (Km/ SqKm)
+SEX,Gender 
+State,State 
+Target_Variable,Total income including both Agri and non Agri in INR
+Total area in hectare ,Total area in hectare 
+Total_Land_For_Agriculture,Total land holding area 
+Village,Village name
+"Village category based on socio-economic parameters (Good, Average, Poor)"," Village category based on socio-economic parameters (Good, Average, Poor)"
+Village score based on socio-economic parameters (0 to 100), Village score based on socio-economic parameters (0 to 100)
+Village score based on socio-economic parameters (Non normalised), Village score based on socio-economic parameters (Non normalised)
+Women_15_19_Mothers_or_Pregnant_at_time_of_survey,percentage of mother pregnant at the time of survey 
+Zipcode,Pincode of the loan disbursement
+Label,Seen data points are for model development and unseen data points are for evaluation
