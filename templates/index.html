@@ -316,6 +316,28 @@ function renderDetail(d) {
     html += `</div>`;
   }
 
+  /* ── Relationship with Target ──── */
+  html += `<div class="section"><h3>Correlation Plot with Target (${d.target_column || 'Target_Variable'})</h3>`;
+  if (d.chart_target_relationship) {
+    html += `<div class="chart-container"><img src="data:image/png;base64,${d.chart_target_relationship}" alt="target-relationship" /></div>`;
+    if (d.trend_with_target) {
+      html += `<div class="stats-grid">`;
+      html += `<div class="stat-card"><div class="label">Trend Direction</div><div class="value">${fmt(d.trend_with_target)}</div></div>`;
+      html += `</div>`;
+    }
+    if (d.trend_note) {
+      html += `<div class="desc" style="margin-top:8px;">${d.trend_note}</div>`;
+    }
+    if (d.pearson_corr_with_target !== null && d.pearson_corr_with_target !== undefined) {
+      html += `<div class="stats-grid">`;
+      html += `<div class="stat-card"><div class="label">Pearson Correlation</div><div class="value">${fmt(d.pearson_corr_with_target)}</div></div>`;
+      html += `</div>`;
+    }
+  } else {
+    html += `<div class="desc">${d.target_relationship_note || 'Target relationship chart not available for this feature.'}</div>`;
+  }
+  html += `</div>`;
+
   /* ── Value Counts ──── */
   html += `<div class="section"><h3>Value Counts (Top ${d.value_counts_total_shown} of ${d.value_counts_total.toLocaleString()})</h3>`;
   const vc = d.value_counts;

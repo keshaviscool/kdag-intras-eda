@@ -13,6 +13,7 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 
 app = Flask(__name__)
+TARGET_COLUMN_PREFERRED = "Target_Variable"
 
 # ── Load data once at startup ──────────────────────────────────────────────
 BASE = os.path.dirname(os.path.abspath(__file__))
@@ -23,6 +24,18 @@ df = pd.read_csv(DATA_PATH)
 # Drop unnamed index col if present
 if "Unnamed: 0" in df.columns:
     df.drop(columns=["Unnamed: 0"], inplace=True)
+
+
+def _resolve_target_column(columns):
+    if TARGET_COLUMN_PREFERRED in columns:
+        return TARGET_COLUMN_PREFERRED
+    for col in columns:
+        if str(col).strip().lower().startswith(TARGET_COLUMN_PREFERRED.lower()):
+            return col
+    return None
+
+
+TARGET_COLUMN = _resolve_target_column(df.columns)
 
 # Load metadata descriptions
 meta_map = {}
@@ -164,6 +177,153 @@ def _make_magnitude_chart(mag_bins, col_name):
     return _fig_to_b64(fig)
 
 
+def _make_target_relationship_chart(feature_series, target_series, feature_name, target_name):
+    """Type-aware chart to visualize relationship between a feature and target."""
+    pair_df = pd.DataFrame({"feature": feature_series, "target": target_series}).dropna()
+    if pair_df.empty:
+        return None
+
+    feat_is_num = pd.api.types.is_numeric_dtype(pair_df["feature"])
+    target_is_num = pd.api.types.is_numeric_dtype(pair_df["target"])
+
+    fig, ax = plt.subplots(figsize=(7, 4))
+    fig.patch.set_facecolor("#ffffff")
+    ax.set_facecolor("#ffffff")
+
+    if feat_is_num and target_is_num:
+        # Clip extreme tails to improve readability while preserving the core relationship.
+        x = pair_df["feature"]
+        y = pair_df["target"]
+        x_lo, x_hi = x.quantile([0.01, 0.99])
+        y_lo, y_hi = y.quantile([0.01, 0.99])
+        clipped = pair_df[
+            pair_df["feature"].between(x_lo, x_hi)
+            & pair_df["target"].between(y_lo, y_hi)
+        ]
+        if len(clipped) < 100:
+            clipped = pair_df
+
+        hb = ax.hexbin(
+            clipped["feature"],
+            clipped["target"],
+            gridsize=42,
+            cmap="Greys",
+            mincnt=1,
+            linewidths=0,
+        )
+        cbar = fig.colorbar(hb, ax=ax, fraction=0.03, pad=0.02)
+        cbar.ax.tick_params(labelsize=7)
+        cbar.set_label("Point Density", fontsize=8)
+
+        # Add a binned mean trend line to clearly show whether target rises or falls.
+        n_quantiles = int(min(12, max(4, clipped["feature"].nunique())))
+        if n_quantiles >= 2:
+            bin_ids = pd.qcut(clipped["feature"], q=n_quantiles, labels=False, duplicates="drop")
+            trend_df = clipped.assign(bin_id=bin_ids).dropna(subset=["bin_id"])
+            binned = (
+                trend_df.groupby("bin_id", as_index=False)
+                .agg(feature_mean=("feature", "mean"), target_mean=("target", "mean"))
+                .sort_values("feature_mean")
+            )
+            if len(binned) > 1:
+                ax.plot(
+                    binned["feature_mean"],
+                    binned["target_mean"],
+                    color="#0b4f8a",
+                    linewidth=2.4,
+                    marker="o",
+                    markersize=3.5,
+                    label="Binned mean trend",
+                )
+
+        # Overlay a simple linear trend line for overall direction.
+        if len(clipped) > 1 and clipped["feature"].std() > 0:
+            slope, intercept = np.polyfit(clipped["feature"], clipped["target"], 1)
+            xs = np.linspace(clipped["feature"].min(), clipped["feature"].max(), 100)
+            ys = slope * xs + intercept
+            ax.plot(xs, ys, color="#b30000", linewidth=1.6, linestyle="--", label="Linear fit")
+
+        corr = clipped["feature"].corr(clipped["target"]) if len(clipped) > 1 else np.nan
+        corr_text = f"Pearson r = {corr:.3f}" if pd.notna(corr) else "Pearson r = N/A"
+        if pd.isna(corr):
+            trend_text = "Trend: N/A"
+        elif corr > 0.05:
+            trend_text = "Trend: Upward (feature up -> target up)"
+        elif corr < -0.05:
+            trend_text = "Trend: Downward (feature up -> target down)"
+        else:
+            trend_text = "Trend: Weak / Flat"
+        ax.text(
+            0.02,
+            0.98,
+            f"{corr_text}\n{trend_text}",
+            transform=ax.transAxes,
+            ha="left",
+            va="top",
+            fontsize=8,
+            bbox=dict(facecolor="#ffffff", edgecolor="#000000", boxstyle="round,pad=0.2"),
+        )
+        ax.legend(loc="lower right", fontsize=7, frameon=True, edgecolor="#000000")
+
+        ax.set_xlabel(feature_name, fontsize=9)
+        ax.set_ylabel(target_name, fontsize=9)
+        ax.set_title(f"Correlation Plot: {feature_name} vs {target_name}", fontsize=10, fontweight="bold")
+    elif feat_is_num and not target_is_num:
+        top_targets = pair_df["target"].value_counts().head(20).index
+        plot_df = pair_df[pair_df["target"].isin(top_targets)]
+        grouped = [plot_df[plot_df["target"] == cat]["feature"].values for cat in top_targets]
+        ax.boxplot(grouped, labels=[str(c)[:20] for c in top_targets], patch_artist=True,
+                   boxprops=dict(facecolor="#cccccc", edgecolor="#000"),
+                   whiskerprops=dict(color="#000"),
+                   capprops=dict(color="#000"),
+                   medianprops=dict(color="#000", linewidth=2),
+                   flierprops=dict(marker="o", markerfacecolor="#888", markersize=3, linestyle="none"))
+        ax.set_xlabel(target_name, fontsize=9)
+        ax.set_ylabel(feature_name, fontsize=9)
+        ax.set_title(f"{feature_name} by {target_name}", fontsize=10, fontweight="bold")
+        ax.tick_params(axis="x", rotation=25)
+    elif not feat_is_num and target_is_num:
+        top_features = pair_df["feature"].value_counts().head(20).index
+        plot_df = pair_df[pair_df["feature"].isin(top_features)]
+        grouped = [plot_df[plot_df["feature"] == cat]["target"].values for cat in top_features]
+        ax.boxplot(grouped, labels=[str(c)[:20] for c in top_features], patch_artist=True,
+                   boxprops=dict(facecolor="#cccccc", edgecolor="#000"),
+                   whiskerprops=dict(color="#000"),
+                   capprops=dict(color="#000"),
+                   medianprops=dict(color="#000", linewidth=2),
+                   flierprops=dict(marker="o", markerfacecolor="#888", markersize=3, linestyle="none"))
+        ax.set_xlabel(feature_name, fontsize=9)
+        ax.set_ylabel(target_name, fontsize=9)
+        ax.set_title(f"{target_name} by {feature_name}", fontsize=10, fontweight="bold")
+        ax.tick_params(axis="x", rotation=25)
+    else:
+        top_features = pair_df["feature"].value_counts().head(15).index
+        top_targets = pair_df["target"].value_counts().head(15).index
+        mask = pair_df["feature"].isin(top_features) & pair_df["target"].isin(top_targets)
+        plot_df = pair_df[mask]
+        ctab = pd.crosstab(
+            plot_df["feature"],
+            plot_df["target"]
+        )
+        if ctab.empty:
+            plt.close(fig)
+            return None
+        im = ax.imshow(ctab.values, cmap="Greys", aspect="auto")
+        ax.set_xticks(range(len(ctab.columns)))
+        ax.set_yticks(range(len(ctab.index)))
+        ax.set_xticklabels([str(c)[:16] for c in ctab.columns], rotation=35, ha="right", fontsize=7)
+        ax.set_yticklabels([str(c)[:16] for c in ctab.index], fontsize=7)
+        ax.set_xlabel(target_name, fontsize=9)
+        ax.set_ylabel(feature_name, fontsize=9)
+        ax.set_title(f"{feature_name} vs {target_name} (count heatmap)", fontsize=10, fontweight="bold")
+        fig.colorbar(im, ax=ax, fraction=0.03, pad=0.02)
+
+    ax.tick_params(labelsize=8)
+    for spine in ax.spines.values():
+        spine.set_color("#000000")
+    return _fig_to_b64(fig)
+
+
 def _safe(val):
     """Make a value JSON-safe."""
     if val is None or (isinstance(val, float) and (math.isnan(val) or math.isinf(val))):
@@ -218,6 +378,8 @@ def api_feature_detail(col_name):
         "null_percentage": round(null_count / total * 100, 2) if total else 0,
         "unique_values": n_unique,
         "unique_percentage": round(n_unique / total * 100, 2) if total else 0,
+        "target_column": TARGET_COLUMN if TARGET_COLUMN else TARGET_COLUMN_PREFERRED,
+        "target_exists": bool(TARGET_COLUMN),
     }
 
     # Value counts (top 50)
@@ -288,6 +450,48 @@ def api_feature_detail(col_name):
     else:
         result["entropy"] = None
 
+    # Feature vs target relationship chart
+    if TARGET_COLUMN and col_name != TARGET_COLUMN:
+        target_series = df[TARGET_COLUMN]
+        result["chart_target_relationship"] = _make_target_relationship_chart(
+            series,
+            target_series,
+            col_name,
+            TARGET_COLUMN,
+        )
+        if pd.api.types.is_numeric_dtype(series) and pd.api.types.is_numeric_dtype(target_series):
+            valid_pair = pd.DataFrame({"x": series, "y": target_series}).dropna()
+            corr_val = valid_pair["x"].corr(valid_pair["y"]) if len(valid_pair) > 1 else None
+            result["pearson_corr_with_target"] = _safe(corr_val) if corr_val is not None else None
+            if corr_val is None or np.isnan(corr_val):
+                result["trend_with_target"] = "N/A"
+                result["trend_note"] = "Insufficient numeric data to estimate trend."
+            elif corr_val > 0.05:
+                result["trend_with_target"] = "Upward"
+                result["trend_note"] = "As feature increases, target tends to increase."
+            elif corr_val < -0.05:
+                result["trend_with_target"] = "Downward"
+                result["trend_note"] = "As feature increases, target tends to decrease."
+            else:
+                result["trend_with_target"] = "Weak / Flat"
+                result["trend_note"] = "No strong up/down trend detected."
+        else:
+            result["pearson_corr_with_target"] = None
+            result["trend_with_target"] = None
+            result["trend_note"] = None
+    elif TARGET_COLUMN and col_name == TARGET_COLUMN:
+        result["chart_target_relationship"] = None
+        result["pearson_corr_with_target"] = None
+        result["trend_with_target"] = None
+        result["trend_note"] = None
+        result["target_relationship_note"] = "Selected feature is the target itself."
+    else:
+        result["chart_target_relationship"] = None
+        result["pearson_corr_with_target"] = None
+        result["trend_with_target"] = None
+        result["trend_note"] = None
+        result["target_relationship_note"] = f"Target column '{TARGET_COLUMN}' not found in dataset."
+
     # Sample values
     result["sample_values"] = [str(v) for v in series.dropna().sample(min(10, non_null), random_state=42).tolist()]
 
@@ -313,4 +517,4 @@ def api_overview():
 
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5050)
+    app.run(debug=True, port=5050, host="0.0.0.0")
